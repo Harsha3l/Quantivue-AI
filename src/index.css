@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 230 84% 15%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 60% 94%;
+    --secondary-foreground: 230 84% 15%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 230 84% 15%;
+
+    --radius: 0.75rem;
+
+    /* Custom colors */
+    --navy: 230 84% 15%;
+    --navy-light: 230 70% 25%;
+    --navy-dark: 230 90% 8%;
+    --orange: 25 95% 53%;
+    --orange-light: 25 95% 60%;
+    --orange-dark: 25 95% 45%;
+    --gradient-primary: linear-gradient(135deg, hsl(230 84% 15%) 0%, hsl(250 70% 30%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(230 84% 12%) 0%, hsl(240 70% 20%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(35 95% 55%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(230 84% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(230 84% 15% / 0.1), 0 2px 4px -2px hsl(230 84% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(230 84% 15% / 0.1), 0 4px 6px -4px hsl(230 84% 15% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(230 84% 15% / 0.1), 0 8px 10px -6px hsl(230 84% 15% / 0.1);
+    --shadow-glow: 0 0 40px hsl(25 95% 53% / 0.3);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 230 84% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 230 70% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 230 70% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 50% 20%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 230 50% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 230 50% 20%;
+    --input: 230 50% 20%;
+    --ring: 25 95% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Fix text selection - enable proper double-tap selection */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: default;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+  }
+
+  /* Allow text selection on all text elements */
+  p, h1, h2, h3, h4, h5, h6, span, div, a, li, td, th, label {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+  }
+
+  /* Disable selection only on buttons and inputs (where appropriate) */
+  button, input[type="button"], input[type="submit"], input[type="reset"] {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Input fields should allow selection of text inside */
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background: var(--gradient-accent);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}

@@ -1,0 +1,250 @@
+{
+  "name": "Post Automation Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "post-automation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "post-automation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.postingMode }}",
+              "operation": "equals",
+              "value2": "approval"
+            }
+          ]
+        }
+      },
+      "id": "check-approval",
+      "name": "Check Approval Mode",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "dateTime": [
+            {
+              "value1": "={{ $json.body.scheduledAt }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-scheduled",
+      "name": "Check Scheduled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "wait-node",
+      "name": "Wait Until Scheduled",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [850, 200],
+      "notes": "Wait until scheduled time (calculated from scheduledAt)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate wait time until scheduled date\nconst scheduledAt = new Date($input.item.json.body.scheduledAt);\nconst now = new Date();\nconst waitTime = Math.max(0, scheduledAt.getTime() - now.getTime()) / 1000; // Convert to seconds\n\nreturn {\n  json: {\n    waitTime: waitTime,\n    scheduledAt: scheduledAt.toISOString(),\n    now: now.toISOString()\n  }\n};"
+      },
+      "id": "calculate-wait",
+      "name": "Calculate Wait Time",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.body.callbackUrl }}",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "posted"
+            },
+            {
+              "name": "platformStatuses",
+              "value": "={{ $json.platformStatuses }}"
+            },
+            {
+              "name": "n8nExecutionId",
+              "value": "={{ $execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "callback-success",
+      "name": "Callback Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.body.callbackUrl }}",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "failed"
+            },
+            {
+              "name": "errorMessage",
+              "value": "={{ $json.error }}"
+            },
+            {
+              "name": "n8nExecutionId",
+              "value": "={{ $execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "callback-failed",
+      "name": "Callback Failed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock social media posting\n// In production, this would integrate with actual social media APIs\n\nconst platforms = $input.item.json.body.platforms || [];\nconst caption = $input.item.json.body.caption || '';\nconst mediaFiles = $input.item.json.body.mediaFiles || [];\n\nconst platformStatuses = platforms.map(platform => {\n  // Simulate posting success (90% success rate for demo)\n  const success = Math.random() > 0.1;\n  \n  return {\n    platform: platform,\n    status: success ? 'posted' : 'failed',\n    platformPostId: success ? `mock_${platform}_${Date.now()}` : null,\n    error: success ? null : `Failed to post to ${platform}`\n  };\n});\n\n// Check if all platforms succeeded\nconst allSuccess = platformStatuses.every(p => p.status === 'posted');\n\nreturn {\n  json: {\n    platformStatuses: platformStatuses,\n    success: allSuccess,\n    error: allSuccess ? null : 'Some platforms failed to post'\n  }\n};"
+      },
+      "id": "mock-post",
+      "name": "Mock Social Media Post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300],
+      "notes": "Mock posting to social media platforms. Replace with actual API integrations in production."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"message\": \"Post processing started\", \"postId\": $json.body.postId } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 400]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Approval Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Approval Mode": {
+      "main": [
+        [
+          {
+            "node": "Check Scheduled",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Scheduled": {
+      "main": [
+        [
+          {
+            "node": "Calculate Wait Time",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Mock Social Media Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Wait Time": {
+      "main": [
+        [
+          {
+            "node": "Wait Until Scheduled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Until Scheduled": {
+      "main": [
+        [
+          {
+            "node": "Mock Social Media Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mock Social Media Post": {
+      "main": [
+        [
+          {
+            "node": "Callback Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Callback Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
