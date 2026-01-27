@@ -99,7 +99,7 @@ const MigrateWebsite = () => {
         }
       }
 
-      const response = await fetch("http://localhost:8000/api/websites/migrate", {
+      const response = await fetch("https://quantivue-ai.onrender.com/api/websites/migrate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,7 +1,8 @@
 // API client configuration
-// In production (served by Node), keep it relative so the app works on a single port (e.g. http://localhost:8000)
-// In dev, you can still set VITE_API_URL if you want, but leaving it empty works with Vite proxy.
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// In production, we default to the live backend URL on Render unless VITE_API_URL overrides it.
+// This ensures the frontend talks to the deployed backend instead of localhost.
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://quantivue-ai.onrender.com";
 
 // Generic network error message shown to users when the backend cannot be reached
 const NETWORK_ERROR_MESSAGE =

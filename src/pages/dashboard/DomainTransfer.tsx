@@ -34,7 +34,7 @@ const DomainTransfer = () => {
 
     try {
       // Call backend API
-      const response = await fetch("http://localhost:8000/api/domains/transfer", {
+      const response = await fetch("https://quantivue-ai.onrender.com/api/domains/transfer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ const DomainTransfer = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/domains/transfer", {
+      const response = await fetch("https://quantivue-ai.onrender.com/api/domains/transfer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

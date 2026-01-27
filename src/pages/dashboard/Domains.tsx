@@ -90,7 +90,7 @@ const Domains = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/domains/${domain.id}/auto-renewal`, {
+      const response = await fetch(`https://quantivue-ai.onrender.com/api/domains/${domain.id}/auto-renewal`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +127,7 @@ const Domains = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/domains/${selectedDomain.id}/auto-renewal`, {
+      const response = await fetch(`https://quantivue-ai.onrender.com/api/domains/${selectedDomain.id}/auto-renewal`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

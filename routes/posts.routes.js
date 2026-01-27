@@ -96,7 +96,8 @@ const upload = multer({
  */
 async function triggerN8nWebhook(postData) {
   const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "http://localhost:5678/webhook/post-automation";
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
+  const backendUrl =
+    process.env.BACKEND_URL || "https://quantivue-ai.onrender.com";
 
   try {
     const response = await fetch(n8nWebhookUrl, {
@@ -304,7 +305,7 @@ router.post("/", requireUser, upload.array("media", 10), async (req, res) => {
             fileName: m.fileName,
             fileType: m.fileType,
             mimeType: m.mimeType,
-            url: `${process.env.BACKEND_URL || "http://localhost:8000"}/uploads/media/${m.fileName}`,
+            url: `${process.env.BACKEND_URL || "https://quantivue-ai.onrender.com"}/uploads/media/${m.fileName}`,
           })),
         });
       } catch (n8nError) {
@@ -485,7 +486,7 @@ router.post("/:id/approve", requireUser, async (req, res) => {
           fileName: m.file_name,
           fileType: m.file_type,
           mimeType: m.mime_type,
-          url: `${process.env.BACKEND_URL || "http://localhost:8000"}/uploads/media/${m.file_name}`,
+          url: `${process.env.BACKEND_URL || "https://quantivue-ai.onrender.com"}/uploads/media/${m.file_name}`,
         })),
       });
     } catch (n8nError) {
