@@ -85,39 +85,34 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      console.log("📧 Attempting login with email:", email.trim().toLowerCase());
+      // Normalize email and trim password
+      const normalizedEmail = email.trim().toLowerCase();
+      const trimmedPassword = password.trim();
       
-      const res = await fetch("/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password,
-        }),
+      console.log("📧 Attempting login with email:", normalizedEmail);
+      console.log("🔍 Password length:", trimmedPassword.length);
+      
+      const response = await api.signin({
+        email: normalizedEmail,
+        password: trimmedPassword,
       });
 
-      const data = await res.json();
-      console.log("📡 Server response status:", res.status);
-      console.log("📡 Server response data:", data);
-
-      if (!res.ok) {
-        console.log("❌ Login failed:", data.detail || data.message);
-        toast.error(data.message || data.detail || "Invalid credentials");
+      if (response.error) {
+        console.log("❌ Login failed:", response.error);
+        toast.error(response.error);
         return;
       }
 
       // 🔐 SAFETY CHECK
-      if (!data?.token || !data?.user) {
+      if (!response.data?.token || !response.data?.user) {
         throw new Error("Invalid login response - missing token or user data");
       }
 
       // ✅ STORE AUTH DATA
-      localStorage.setItem("access_token", data.token);
-      localStorage.setItem("user_id", String(data.user.id));
-      localStorage.setItem("user_email", data.user.email);
-      localStorage.setItem("user_name", data.user.full_name || "");
+      localStorage.setItem("access_token", response.data.token);
+      localStorage.setItem("user_id", String(response.data.user.id));
+      localStorage.setItem("user_email", response.data.user.email);
+      localStorage.setItem("user_name", response.data.user.full_name || "");
 
       if (rememberMe) {
         localStorage.setItem("remember_me", "true");
@@ -132,7 +127,7 @@ const Login = () => {
       const message =
         error?.name === "TypeError"
           ? "Backend not reachable. Please start the server (npm run server) and try again."
-          : "Login failed. Please check your credentials.";
+          : error?.message || "Login failed. Please check your credentials.";
       toast.error(message);
     } finally {
       setIsLoading(false);

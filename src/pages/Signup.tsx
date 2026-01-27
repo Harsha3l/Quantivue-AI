@@ -73,25 +73,76 @@ const Signup = () => {
       return;
     }
 
-    if (password !== confirmPassword) {
+    // Trim all inputs
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+
+    if (trimmedPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
 
     setIsLoading(true);
     try {
-      console.log("📝 Signup attempt for email:", email);
+      console.log("📝 Signup attempt for email:", trimmedEmail);
+      console.log("🔍 Password length:", trimmedPassword.length);
+      
       const response = await api.signup({
-        full_name: name,
-        email,
-        password,
+        full_name: trimmedName,
+        email: trimmedEmail,
+        password: trimmedPassword,
       });
+      
+      if (response.error) {
+        console.error("❌ Signup error:", response.error);
+        toast.error(response.error);
+        return;
+      }
+
       console.log("✅ Signup successful:", response);
-      toast.success("Account created");
-      navigate("/login");
+      toast.success("Account created successfully!");
+      
+      // Auto-login after successful signup
+      try {
+        const loginResponse = await api.signin({
+          email: trimmedEmail,
+          password: trimmedPassword,
+        });
+
+        if (loginResponse.error) {
+          console.warn("⚠️ Auto-login failed, redirecting to login page");
+          toast.info("Account created! Please sign in.");
+          navigate("/login");
+          return;
+        }
+
+        // Store auth data
+        if (loginResponse.data?.token && loginResponse.data?.user) {
+          localStorage.setItem("access_token", loginResponse.data.token);
+          localStorage.setItem("user_id", String(loginResponse.data.user.id));
+          localStorage.setItem("user_email", loginResponse.data.user.email);
+          localStorage.setItem("user_name", loginResponse.data.user.full_name || "");
+          
+          toast.success("Welcome! You're now signed in.");
+          navigate("/dashboard");
+        } else {
+          navigate("/login");
+        }
+      } catch (loginError) {
+        console.warn("⚠️ Auto-login failed:", loginError);
+        toast.info("Account created! Please sign in.");
+        navigate("/login");
+      }
     } catch (error: any) {
       console.error("❌ Signup error:", error);
-      toast.error(error?.message || "Signup failed");
+      toast.error(error?.message || "Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

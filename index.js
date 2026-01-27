@@ -150,7 +150,7 @@ app.use((err, req, res, next) => {
 // =============================
 // SERVER START
 // =============================
-const PORT = 8000; // ✅ FIXED PORT
+const PORT = process.env.PORT || 8000;
 
 async function startServer() {
   logger.info("Starting Backend Server...");

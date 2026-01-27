@@ -50,18 +50,27 @@ export const api = {
   // Auth endpoints
   signup: async (data: SignupRequest): Promise<ApiResponse<any>> => {
     try {
+      // Normalize email, trim password and name
+      const normalizedData = {
+        email: String(data.email).trim().toLowerCase(),
+        password: String(data.password).trim(),
+        full_name: String(data.full_name).trim(),
+      };
+
+      console.log("📤 Sending signup request - Email:", normalizedData.email, "Password length:", normalizedData.password.length);
+
       const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(normalizedData),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        return { error: result.detail || 'Signup failed' };
+        return { error: result.detail || result.message || 'Signup failed' };
       }
 
       return { data: result, message: result.message };
@@ -73,12 +82,20 @@ export const api = {
 
   signin: async (data: SigninRequest): Promise<ApiResponse<any>> => {
     try {
+      // Normalize email and trim password
+      const normalizedData = {
+        email: String(data.email).trim().toLowerCase(),
+        password: String(data.password).trim(),
+      };
+
+      console.log("📤 Sending login request - Email:", normalizedData.email, "Password length:", normalizedData.password.length);
+
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(normalizedData),
       });
   
       const result = await response.json();

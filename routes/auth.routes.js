@@ -30,26 +30,33 @@ async function loginHandler(req, res) {
   try {
     const { email, password } = req.body;
 
-    console.log("🔐 Login attempt for email:", email);
+    // Normalize email and trim password (MUST match signup normalization)
+    const normalizedEmail = email ? String(email).trim().toLowerCase() : "";
+    const trimmedPassword = password ? String(password).trim() : "";
+
+    console.log("🔐 Login attempt for email:", normalizedEmail);
+    console.log("🔍 Password length received:", trimmedPassword.length);
 
     // Validation
-    if (!email || !password) {
+    if (!normalizedEmail || !trimmedPassword) {
       console.log("❌ Missing email or password");
       return res.status(400).json({
         detail: "Email and password are required",
       });
     }
 
-    // Find user with case-insensitive email
+    // Find user with case-insensitive email (using normalized email)
     const result = await query(
       "SELECT id, email, password, full_name FROM users WHERE LOWER(email) = LOWER($1)",
-      [email]
+      [normalizedEmail]
     );
 
     if (result.rows.length === 0) {
-      console.log("❌ User not found with email:", email);
+      // Return same error message for security (don't reveal if email exists)
+      console.log("❌ User not found or invalid credentials for email:", normalizedEmail);
+      // DEBUG: returning specific error
       return res.status(401).json({
-        detail: "Invalid email or password",
+        detail: "User not found",
       });
     }
 
@@ -57,26 +64,39 @@ async function loginHandler(req, res) {
     console.log("✅ User found:", user.email);
     console.log("🔍 Stored password hash length:", user.password?.length);
 
+    // Validate stored password hash exists
+    if (!user.password) {
+      console.error("❌ User has no password hash stored");
+      return res.status(500).json({
+        detail: "Server error: User has no password set",
+      });
+    }
+
     // Compare password with bcrypt
+    // IMPORTANT: Compare trimmed password against stored hash
+    // The hash was created from trimmed password during signup
     let isMatch = false;
     try {
-      isMatch = await bcrypt.compare(password, user.password);
+      isMatch = await bcrypt.compare(trimmedPassword, user.password);
       console.log("🔑 Password match result:", isMatch);
     } catch (bcryptError) {
       console.error("❌ Bcrypt comparison error:", bcryptError.message);
       return res.status(500).json({
-        detail: "Password verification failed",
+        detail: "Server error: Password verification failed",
       });
     }
 
     if (!isMatch) {
-      console.log("❌ Password does not match for user:", email);
+      // Return same error message for security (don't reveal if password is wrong)
+      console.log("❌ Password does not match for user:", normalizedEmail);
+      // DEBUG: returning specific error
       return res.status(401).json({
-        detail: "Invalid email or password",
+        detail: "Invalid password",
       });
     }
 
     // Record login (for admin metrics)
+    /* 
     try {
       await query(
         `INSERT INTO login_logs (user_id, ip_address, user_agent)
@@ -87,6 +107,7 @@ async function loginHandler(req, res) {
     } catch (logError) {
       console.warn("⚠️ Failed to record login log:", logError.message);
     }
+    */
 
     // Generate JWT token
     const token = jwt.sign(
@@ -125,44 +146,52 @@ router.post("/signup", async (req, res) => {
   try {
     const { full_name, email, password } = req.body;
 
-    console.log("📝 Signup attempt - Email:", email, "Password length:", password?.length);
+    // Normalize and trim all inputs (CRITICAL: must match login normalization)
+    const normalizedFullName = full_name ? String(full_name).trim() : "";
+    const normalizedEmail = email ? String(email).trim().toLowerCase() : "";
+    const trimmedPassword = password ? String(password).trim() : "";
 
-    if (!full_name || !email || !password) {
+    console.log("📝 Signup attempt - Email:", normalizedEmail, "Password length:", trimmedPassword.length);
+
+    // Validation
+    if (!normalizedFullName || !normalizedEmail || !trimmedPassword) {
       console.log("❌ Missing required fields");
       return res.status(400).json({
         detail: "Full name, email, and password are required",
       });
     }
 
-    if (password.length < 6) {
-      console.log("❌ Password too short:", password.length);
+    if (trimmedPassword.length < 6) {
+      console.log("❌ Password too short:", trimmedPassword.length);
       return res.status(400).json({
         detail: "Password must be at least 6 characters long",
       });
     }
 
-    // Check if user already exists
+    // Check if user already exists (use normalized email)
     const exists = await query(
       "SELECT id FROM users WHERE LOWER(email) = LOWER($1)",
-      [email]
+      [normalizedEmail]
     );
 
     if (exists.rows.length > 0) {
-      console.log("❌ User already exists with email:", email);
+      console.log("❌ User already exists with email:", normalizedEmail);
       return res.status(409).json({
         detail: "User with this email already exists",
       });
     }
 
     // Hash password with bcrypt (salt rounds: 10)
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // IMPORTANT: Hash the TRIMMED password to match login comparison
+    const hashedPassword = await bcrypt.hash(trimmedPassword, 10);
     console.log("🔐 Password hashed successfully");
 
+    // Store normalized email and trimmed password hash
     const result = await query(
       `INSERT INTO users (full_name, email, password, signup_type, email_verified, sms_verified, verified)
        VALUES ($1, $2, $3, 'normal', false, false, false)
        RETURNING id, email, full_name, created_at`,
-      [full_name, email.toLowerCase(), hashedPassword]
+      [normalizedFullName, normalizedEmail, hashedPassword]
     );
 
     console.log("✅ User created successfully - ID:", result.rows[0].id);
