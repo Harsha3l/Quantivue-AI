@@ -76,7 +76,7 @@ npm install
 
 ### 4. n8n Workflow Setup
 
-1. Open n8n at `http://localhost:5678`
+1. Open n8n at `https://quantivue-n8n.onrender.com`
 2. Create a new workflow
 3. Import the workflow from `n8n-workflows/post-automation-workflow.json`
    - Or manually create a webhook trigger with path: `post-automation`
@@ -266,7 +266,7 @@ Webhook endpoint for n8n to update post status (called automatically by n8n).
 - Ensure `uploads/media/` directory exists and is writable
 
 ### n8n webhook not working
-- Verify n8n is running on `http://localhost:5678`
+- Verify n8n is running on `https://quantivue-n8n.onrender.com`
 - Check `N8N_WEBHOOK_URL` in `.env`
 - Ensure workflow is activated in n8n
 - Check n8n execution logs
